@@ -1,0 +1,1 @@
+[{"id":1,"nombre":"Coca Cala","precio":700},{"id":2,"nombre":"Pepsi","precio":950}]Curso de Backend!
