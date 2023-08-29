@@ -2,9 +2,8 @@ import express from "express";
 import __dirname from "./utils.js"
 import handlebars from "express-handlebars";
 import viewsRouter from "./routes/views.routes.js";
-import {Server} from "socket.io";
+import { Server } from "socket.io";
 import ProductManager from "./ProductManager.js";
-
 import productsRouter from "./routes/products.router.js";
 import cartsRouter from "./routes/carts.router.js";
 
@@ -22,12 +21,12 @@ app.set("views", __dirname + "/views");
 app.set("view engine", "handlebars");
 app.use(express.static(__dirname + "/public"));
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 app.use("/api/products/", productsRouter);
-app.use("/api/carts/",cartsRouter)
+app.use("/api/carts/", cartsRouter)
 app.use("/", viewsRouter);
 
-socketServer.on("connection", (socket) => {
+socketServer.on("connection", async (socket) => {
     console.log("Nueva Conexión!");
 
     /* socket.broadcast.emit("nuevaConexion", "Hay un nuevo Usuario conectado!");
@@ -40,7 +39,41 @@ socketServer.on("connection", (socket) => {
         messages.push({usuario:data.usuario, foto:data.foto, mensaje:data.mensaje});
         socket.emit("messages", messages);
     }); */
-    const productManager = new ProductManager();
-    const products = productManager.getProducts();
-    socket.emit("realTimeProducts", products);
+
+    try {
+        const products = await productManager.getProducts({});
+        socket.emit("realTimeProducts", products);
+
+        socket.on("nuevoProducto", async (data) => {
+            try {
+                await productManager.addProduct({
+                    title: data.title,
+                    description: "",
+                    code: "",
+                    price: data.price,
+                    status: "",
+                    stock: 100,
+                    category: "",
+                    thumbnails: data.thumbnails
+                });
+
+                const updatedProducts = await productManager.getProducts({});
+                socket.emit("realTimeProducts", updatedProducts);
+            } catch (error) {
+                console.error("Error al agregar producto:", error);
+            }
+        });
+
+        socket.on("eliminarProducto", async (data) => {
+            try {
+                await productManager.deleteProduct(parseInt(data));
+                const updatedProducts = await productManager.getProducts({});
+                socket.emit("realTimeProducts", updatedProducts);
+            } catch (error) {
+                console.error("Error al eliminar producto:", error);
+            }
+        });
+    } catch (error) {
+        console.error("Error al obtener productos:", error);
+    }
 });
