@@ -3,18 +3,6 @@ import fs from "fs";
 export default class CartManager {
     constructor() {
         this.carts = [];
-        this.path = "carrito.json";
-        this.createFile();
-    }
-
-    async createFile() {
-        try {
-            if (!fs.existsSync(this.path)) {
-                await fs.promises.writeFile(this.path, JSON.stringify(this.carts));
-            }
-        } catch (error) {
-            console.error("Error creating file:", error);
-        }
     }
 
     async newCart() {

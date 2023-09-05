@@ -3,9 +3,10 @@ import __dirname from "./utils.js"
 import handlebars from "express-handlebars";
 import viewsRouter from "./routes/views.routes.js";
 import { Server } from "socket.io";
-import ProductManager from "./ProductManager.js";
+import ProductManager from "./dao/ProductManager.js";
 import productsRouter from "./routes/products.router.js";
 import cartsRouter from "./routes/carts.router.js";
+import mongoose from "mongoose";
 
 const app = express();
 const puerto = 8080;
@@ -25,6 +26,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/products/", productsRouter);
 app.use("/api/carts/", cartsRouter)
 app.use("/", viewsRouter);
+
+mongoose.connect("mongodb+srv://barrioslafont5:25680471yY-@codespacecluster.hc9cjzi.mongodb.net/ecommerce?retryWrites=true&w=majority");
 
 socketServer.on("connection", async (socket) => {
     console.log("Nueva Conexión!");

@@ -1,9 +1,10 @@
-import mongoose from "mongoose";
+//import mongoose from "mongoose";
+import { Model } from "mongoose";
+import { productModel } from "./models/product.model.js";
 
 export default class ProductManager {
     constructor(path) {
         this.products = [];
-        this.path = "products.json";
     }
 
     async addProduct(product) {
@@ -12,11 +13,10 @@ export default class ProductManager {
                 console.log("Error! file CODE exists already!");
                 return false;
             } else {
-                const producto = { id: this.generateId(), title: product.title, description: product.description, code: product.code, price: product.price, status: product.status, stock: product.stock, category: product.category, thumbnails: product.thumbnails };
-                this.products = JSON.parse(await fs.promises.readFile(this.path, "utf-8"));
-                this.products.push(producto);
-                await fs.promises.writeFile(this.path, JSON.stringify(this.products));
+                const producto = { title: product.title, description: product.description, code: product.code, price: product.price, status: product.status, stock: product.stock, category: product.category, thumbnails: product.thumbnails };
+                productModel.create(producto)
                 console.log("Product added!");
+
                 return true;
             }
         } catch (error) {
@@ -25,30 +25,25 @@ export default class ProductManager {
     }
 
     async updateProduct(id, product) {
-        try {
-            this.products = JSON.parse(await fs.promises.readFile(this.path, "utf-8"));
-            let pos = this.products.findIndex(item => item.id === id);
+        // try {
+        //     this.products = JSON.parse(await fs.promises.readFile(this.path, "utf-8"));
+        //     let pos = this.products.findIndex(item => item.id === id);
 
-            if (pos > -1) {
-                this.products[pos].title = product.title;
-                this.products[pos].description = product.description;
-                this.products[pos].code = product.code;
-                this.products[pos].price = product.price;
-                this.products[pos].status = product.status;
-                this.products[pos].stock = product.stock;
-                this.products[pos].category = product.category;
-                this.products[pos].thumbnails = product.thumbnails;
-                await fs.promises.writeFile(this.path, JSON.stringify(this.products));
-                console.log("Product updated!");
+        //     if (pos > -1) {
+        //         this.products[pos].title = product.title;
+        //         this.products[pos].description = product.description;
+        //         this.products[pos].code = product.code;
+        //         this.products[pos].price = product.price;
+        //         this.products[pos].status = product.status;
+        //         this.products[pos].stock = product.stock;
+        //         this.products[pos].category = product.category;
+        //         this.products[pos].thumbnails = product.thumbnails;
+        //         await fs.promises.writeFile(this.path, JSON.stringify(this.products));
+        //         console.log("Product updated!");
+        productModel.updateOne({_id:id }, product);
+        console.log("Product updated");
 
-                return true;
-            } else {
-                console.log("Product not found!");
-                return false;
-            }
-        } catch (error) {
-            console.error("Error updating product:", error);
-        }
+        return true;
     }
 
     async deleteProduct(id) {
@@ -74,27 +69,24 @@ export default class ProductManager {
     }
 
     async getProducts() {
-        try {
-            this.products = JSON.parse(await fs.promises.readFile(this.path, "utf-8"));
-            return this.products;
-        } catch (error) {
-            console.error("Error getting products:", error);
-            return [];
-        }
+        return await productModel.find().lean();
+        // try {
+        //     const products = await productModel.find();
+
+        // } catch (error) {
+        //     console.error("Error getting products:", error);
+        //     return [];
+        // }
+        // this.products = JSON.parse(await fs.promises.readFile(this.path, "utf-8"));
+        //     return this.products;
     }
 
     async getProductById(id) {
-        try {
-            this.products = JSON.parse(await fs.promises.readFile(this.path, "utf-8"));
-            return this.products.find(item => item.id === id) || "Not found";
-        } catch (error) {
-            console.error("Error getting product by ID:", error);
-            return "Not found";
-        }
+        return productModel.find({ id: id }).lean();
     }
 
     validateCode(code) {
-        return this.products.some(item => item.code === code);
+        return productModel.find({ code: code }).lean();
     }
 
     generateId() {
